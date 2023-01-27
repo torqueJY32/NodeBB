@@ -390,19 +390,42 @@ export async function invite(caller : Caller, data : Data) {
 
 
 
-export async function kick(caller, data) {
-    const uidsExist = await user.exists(data.uids);
+// export async function kick(caller, data) {
+//     const uidsExist = await user.exists(data.uids);
+//     if (!uidsExist.every(Boolean)) {
+//         throw new Error('[[error:no-user]]');
+//     }
+
+//     // Additional checks if kicking vs leaving
+//     if (data.uids.length === 1 && parseInt(data.uids[0], 10) === caller.uid) {
+//         await messaging.leaveRoom([caller.uid], data.roomId);
+//     } else {
+//         await messaging.removeUsersFromRoom(caller.uid, data.uids, data.roomId);
+//     }
+
+//     delete data.uids;
+//     return users(caller, data);
+// };
+
+export async function kick(caller : Caller, data: Data) {
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    const uidsExist : boolean[] = await user.exists(data.uids) as boolean[];
     if (!uidsExist.every(Boolean)) {
         throw new Error('[[error:no-user]]');
     }
 
     // Additional checks if kicking vs leaving
-    if (data.uids.length === 1 && parseInt(data.uids[0], 10) === caller.uid) {
+    if (data.uids.length === 1 && parseInt(data.uids[0], 10) === parseInt(caller.uid, 10)) {
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         await messaging.leaveRoom([caller.uid], data.roomId);
     } else {
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         await messaging.removeUsersFromRoom(caller.uid, data.uids, data.roomId);
     }
 
     delete data.uids;
     return users(caller, data);
-};
+}
