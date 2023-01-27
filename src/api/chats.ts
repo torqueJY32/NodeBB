@@ -61,10 +61,18 @@ type EventData = {
     newName : string
 }
 
+type User = {
+    uid : number,
+    canKick : boolean
+}
+
 function rateLimitExceeded(caller : Caller) : boolean {
     const session : Session = caller.request ? caller.request.session : caller.session; // socket vs req
     const now : number = Date.now();
     session.lastChatMessageTime = session.lastChatMessageTime || 0;
+
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     if (now - session.lastChatMessageTime < meta.config.chatMessageDelay) {
         return true;
     }
@@ -78,13 +86,11 @@ export async function create(caller : Caller, data : Data) {
         throw new Error('[[error:too-many-messages]]');
     }
 
-    // if (!data.uids || !Array.isArray(data.uids)) {
-    //     throw new Error(`[[error:wrong-parameter-type, uids, ${typeof data.uids}, Array]]`);
-    // }
-    // Unused as of type was checked before
 
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await Promise.all(data.uids.map(async uid => messaging.canMessageUser(caller.uid, uid)));
-    const roomId : number = await messaging.newRoom(caller.uid, data.uids);
+    const roomId : number = await messaging.newRoom(caller.uid, data.uids) as number;
 
     return await messaging.getRoomData(roomId);
 }
@@ -109,66 +115,95 @@ export async function post(caller : Caller, data : Data) {
         content: data.message,
         timestamp: Date.now(),
         ip: caller.ip,
-    });
+    }) as Message;
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     messaging.notifyUsersInRoom(caller.uid, data.roomId, message);
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     user.updateOnlineUsers(caller.uid);
 
     return message;
 }
 
 export async function rename(caller : Caller, data : Data) {
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await messaging.renameRoom(caller.uid, data.roomId, data.name);
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     const uids : number[] = await messaging.getUidsInRoom(data.roomId, 0, -1) as number[];
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     const eventData : EventData = { roomId: data.roomId, newName: validator.escape(String(data.name)) as string} ;
 
-    socketHelpers.emitToUids('event:chats.roomRename', eventData, uids);
+    await socketHelpers.emitToUids('event:chats.roomRename', eventData, uids);
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     return messaging.loadRoom(caller.uid, {
         roomId: data.roomId,
     });
 }
 
 export async function users(caller : Caller, data : Data) {
-    const [isOwner, users] = await Promise.all([
+    const [isOwner, users] : [boolean, User[]] = await Promise.all([
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         messaging.isRoomOwner(caller.uid, data.roomId),
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         messaging.getUsersInRoom(data.roomId, 0, -1),
-    ]);
+    ] as [boolean, User[]]);
     users.forEach((user) => {
-        user.canKick = (parseInt(user.uid, 10) !== caller.uid) && isOwner;
+        user.canKick = (user.uid !== caller.uid) && isOwner;
     });
     return { users };
-};
+}
 
-export async function invite (caller : Caller, data : Data) {
-    const userCount : number = await messaging.getUserCountInRoom(data.roomId);
-    const maxUsers : number = meta.config.maximumUsersInChatRoom;
+export async function invite(caller : Caller, data : Data) {
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    const userCount : number = await messaging.getUserCountInRoom(data.roomId) as number;
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    const maxUsers : number = meta.config.maximumUsersInChatRoom as number;
     if (maxUsers && userCount >= maxUsers) {
         throw new Error('[[error:cant-add-more-users-to-chat-room]]');
     }
-
-    const uidsExist : boolean[] = await user.exists(data.uids);
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    const uidsExist : boolean[] = await user.exists(data.uids) as boolean[];
     if (!uidsExist.every(Boolean)) {
         throw new Error('[[error:no-user]]');
     }
     await Promise.all(data.uids.map(async uid => messaging.canMessageUser(caller.uid, uid)));
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await messaging.addUsersToRoom(caller.uid, data.uids, data.roomId);
 
     delete data.uids;
     return users(caller, data);
-};
+}
 
-export async function kick (caller : Caller , data: Data) {
-    const uidsExist = await user.exists(data.uids);
+export async function kick(caller : Caller, data: Data) {
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    const uidsExist : boolean[] = await user.exists(data.uids) as boolean[];
     if (!uidsExist.every(Boolean)) {
         throw new Error('[[error:no-user]]');
     }
 
     // Additional checks if kicking vs leaving
     if (data.uids.length === 1 && data.uids[0] === caller.uid) {
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         await messaging.leaveRoom([caller.uid], data.roomId);
     } else {
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         await messaging.removeUsersFromRoom(caller.uid, data.uids, data.roomId);
     }
 
     delete data.uids;
     return users(caller, data);
-};
+}
