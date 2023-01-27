@@ -183,25 +183,47 @@ function users(caller, data) {
     });
 }
 exports.users = users;
+// export async function invite(caller, data) {
+//     const userCount = await messaging.getUserCountInRoom(data.roomId);
+//     const maxUsers = meta.config.maximumUsersInChatRoom;
+//     if (maxUsers && userCount >= maxUsers) {
+//         throw new Error('[[error:cant-add-more-users-to-chat-room]]');
+//     }
+//     const uidsExist = await user.exists(data.uids);
+//     if (!uidsExist.every(Boolean)) {
+//         throw new Error('[[error:no-user]]');
+//     }
+//     await Promise.all(data.uids.map(async uid => messaging.canMessageUser(caller.uid, uid)));
+//     await messaging.addUsersToRoom(caller.uid, data.uids, data.roomId);
+//     delete data.uids;
+//     return users(caller, data);
+// };
 function invite(caller, data) {
     return __awaiter(this, void 0, void 0, function* () {
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         const userCount = yield messaging_1.default.getUserCountInRoom(data.roomId);
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         const maxUsers = meta_1.default.config.maximumUsersInChatRoom;
         if (maxUsers && userCount >= maxUsers) {
             throw new Error('[[error:cant-add-more-users-to-chat-room]]');
         }
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         const uidsExist = yield user_1.default.exists(data.uids);
         if (!uidsExist.every(Boolean)) {
             throw new Error('[[error:no-user]]');
         }
         yield Promise.all(data.uids.map((uid) => __awaiter(this, void 0, void 0, function* () { return messaging_1.default.canMessageUser(caller.uid, uid); })));
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         yield messaging_1.default.addUsersToRoom(caller.uid, data.uids, data.roomId);
         delete data.uids;
         return users(caller, data);
     });
 }
 exports.invite = invite;
-;
 function kick(caller, data) {
     return __awaiter(this, void 0, void 0, function* () {
         const uidsExist = yield user_1.default.exists(data.uids);
