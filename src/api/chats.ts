@@ -1,14 +1,24 @@
-'use strict';
+// 'use strict';
 
-const validator = require('validator');
+// const validator = require('validator');
+import validator from 'validator';
 
-const user = require('../user');
-const meta = require('../meta');
-const messaging = require('../messaging');
-const plugins = require('../plugins');
+// const user = require('../user');
+import user from '../user';
 
-// const websockets = require('../socket.io');
-const socketHelpers = require('../socket.io/helpers');
+// const meta = require('../meta');
+import meta from '../meta';
+
+// const messaging = require('../messaging');
+import messaging from '../messaging'
+
+// const plugins = require('../plugins');
+import plugins from '../plugins'
+
+// const websockets = require('../socket.io'); THIS WAS COMMENTED
+// const socketHelpers = require('../socket.io/helpers');
+import socketHelpers from '../socket.io/helpers'
+
 
 const chatsAPI = module.exports;
 
