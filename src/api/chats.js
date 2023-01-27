@@ -58,10 +58,14 @@ function post(caller, data) {
         }
         // The next line calls a function in a module that has not been updated to TS yet
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-        (data = (yield plugins_1.default.hooks.fire('filter:messaging.send', {
+        const aggregateHook = yield plugins_1.default.hooks.fire('filter:messaging.send', {
             data,
             uid: caller.uid,
-        })));
+        });
+        ({ data } = aggregateHook);
+        // This part has been modified from the original code so that we can first get the data
+        // in its aggregated form, then deconstruct to get the data from the return value
+        // This helps ensure the types in between
         // The next line calls a function in a module that has not been updated to TS yet
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         yield messaging_1.default.canMessageRoom(caller.uid, data.roomId);

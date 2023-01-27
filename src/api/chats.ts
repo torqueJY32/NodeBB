@@ -1,3 +1,4 @@
+
 import validator from 'validator';
 
 import user from '../user';
@@ -43,6 +44,15 @@ type User = {
     canKick : boolean
 }
 
+
+
+type Hook = {
+    data : Data
+    uid : number
+}
+
+
+
 function rateLimitExceeded(caller : Caller) : boolean {
     const session : Session = caller.request ? caller.request.session : caller.session; // socket vs req
     const now : number = Date.now();
@@ -83,7 +93,6 @@ export async function create(caller : Caller, data : Data) {
 
 
 
-
 export async function post(caller : Caller, data : Data) {
     if (rateLimitExceeded(caller)) {
         throw new Error('[[error:too-many-messages]]');
@@ -91,10 +100,14 @@ export async function post(caller : Caller, data : Data) {
 
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    (data = await plugins.hooks.fire('filter:messaging.send', {
+    const aggregateHook : Hook = await plugins.hooks.fire('filter:messaging.send', {
         data,
         uid: caller.uid,
-    }) as Data);
+    }) as Hook;
+    ({ data } = aggregateHook);
+    // This part has been modified from the original code so that we can first get the data
+    // in its aggregated form, then deconstruct to get the data from the return value
+    // This helps ensure the types in between
 
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
@@ -118,6 +131,8 @@ export async function post(caller : Caller, data : Data) {
     return message;
 }
 
+
+
 export async function rename(caller : Caller, data : Data) {
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
@@ -137,6 +152,8 @@ export async function rename(caller : Caller, data : Data) {
     });
 }
 
+
+
 export async function users(caller : Caller, data : Data) {
     const [isOwner, users] : [boolean, User[]] = await Promise.all([
         // The next line calls a function in a module that has not been updated to TS yet
@@ -151,6 +168,7 @@ export async function users(caller : Caller, data : Data) {
     });
     return { users };
 }
+
 
 export async function invite(caller : Caller, data : Data) {
     // The next line calls a function in a module that has not been updated to TS yet
@@ -176,6 +194,7 @@ export async function invite(caller : Caller, data : Data) {
     delete data.uids;
     return users(caller, data);
 }
+
 
 export async function kick(caller : Caller, data: Data) {
     // The next line calls a function in a module that has not been updated to TS yet
