@@ -48,13 +48,13 @@ type Caller = {
     ip : string
 }
 
-type Message = {
-    uid: number
-    roomId: number
-    content: string
-    timestamp: number
-    ip: string
-}
+// type Message = {
+//     uid: number
+//     roomId: number
+//     content: string
+//     timestamp: number
+//     ip: string
+// }
 
 type EventData = {
     roomId : number,
@@ -90,8 +90,13 @@ export async function create(caller : Caller, data : Data) {
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await Promise.all(data.uids.map(async uid => messaging.canMessageUser(caller.uid, uid)));
+
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     const roomId : number = await messaging.newRoom(caller.uid, data.uids) as number;
 
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call,
     return await messaging.getRoomData(roomId);
 }
 
@@ -103,19 +108,25 @@ export async function post(caller : Caller, data : Data) {
         throw new Error('[[error:too-many-messages]]');
     }
 
-    ({ data } = await plugins.hooks.fire('filter:messaging.send', {
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    data = await plugins.hooks.fire('filter:messaging.send', {
         data,
         uid: caller.uid,
-    }));
+    }) as Data;
 
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await messaging.canMessageRoom(caller.uid, data.roomId);
-    const message : Message = await messaging.sendMessage({
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    const message : string = await messaging.sendMessage({
         uid: caller.uid,
         roomId: data.roomId,
         content: data.message,
         timestamp: Date.now(),
         ip: caller.ip,
-    }) as Message;
+    }) as string;
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     messaging.notifyUsersInRoom(caller.uid, data.roomId, message);
@@ -135,11 +146,11 @@ export async function rename(caller : Caller, data : Data) {
     const uids : number[] = await messaging.getUidsInRoom(data.roomId, 0, -1) as number[];
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    const eventData : EventData = { roomId: data.roomId, newName: validator.escape(String(data.name)) as string} ;
+    const eventData : EventData = { roomId: data.roomId, newName: validator.escape(String(data.name)) as string };
 
     await socketHelpers.emitToUids('event:chats.roomRename', eventData, uids);
     // The next line calls a function in a module that has not been updated to TS yet
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
     return messaging.loadRoom(caller.uid, {
         roomId: data.roomId,
     });
