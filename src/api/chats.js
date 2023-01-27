@@ -70,16 +70,45 @@ function create(caller, data) {
     });
 }
 exports.create = create;
+// export async function post(caller, data) {
+//     if (rateLimitExceeded(caller)) {
+//         throw new Error('[[error:too-many-messages]]');
+//     }
+//     ({ data } = await plugins.hooks.fire('filter:messaging.send', {
+//         data,
+//         uid: caller.uid,
+//     }));
+//     await messaging.canMessageRoom(caller.uid, data.roomId);
+//     const message = await messaging.sendMessage({
+//         uid: caller.uid,
+//         roomId: data.roomId,
+//         content: data.message,
+//         timestamp: Date.now(),
+//         ip: caller.ip,
+//     });
+//     messaging.notifyUsersInRoom(caller.uid, data.roomId, message);
+//     user.updateOnlineUsers(caller.uid);
+//     return message;
+// };
 function post(caller, data) {
     return __awaiter(this, void 0, void 0, function* () {
         if (rateLimitExceeded(caller)) {
             throw new Error('[[error:too-many-messages]]');
         }
-        ({ data } = yield plugins_1.default.hooks.fire('filter:messaging.send', {
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+        const aggregateHook = yield plugins_1.default.hooks.fire('filter:messaging.send', {
             data,
             uid: caller.uid,
-        }));
+        });
+        // console.log("START LOG MSG!!\n");
+        // console.log(aggregateHook);
+        ({ data } = aggregateHook);
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         yield messaging_1.default.canMessageRoom(caller.uid, data.roomId);
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         const message = yield messaging_1.default.sendMessage({
             uid: caller.uid,
             roomId: data.roomId,
@@ -87,13 +116,16 @@ function post(caller, data) {
             timestamp: Date.now(),
             ip: caller.ip,
         });
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         messaging_1.default.notifyUsersInRoom(caller.uid, data.roomId, message);
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         user_1.default.updateOnlineUsers(caller.uid);
         return message;
     });
 }
 exports.post = post;
-;
 function rename(caller, data) {
     return __awaiter(this, void 0, void 0, function* () {
         yield messaging_1.default.renameRoom(caller.uid, data.roomId, data.name);

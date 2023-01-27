@@ -78,6 +78,15 @@ type User = {
     canKick : boolean
 }
 
+
+
+type Hook = {
+    data : Data
+    uid : number
+}
+
+
+
 function rateLimitExceeded(caller : Caller) : boolean {
     const session : Session = caller.request ? caller.request.session : caller.session; // socket vs req
     const now : number = Date.now();
@@ -91,6 +100,10 @@ function rateLimitExceeded(caller : Caller) : boolean {
     session.lastChatMessageTime = now;
     return false;
 }
+
+
+
+
 
 
 
@@ -153,29 +166,100 @@ export async function create(caller : Caller, data : Data) {
 
 
 
-export async function post(caller, data) {
+
+
+
+
+
+
+
+
+
+
+
+
+// export async function post(caller, data) {
+//     if (rateLimitExceeded(caller)) {
+//         throw new Error('[[error:too-many-messages]]');
+//     }
+
+//     ({ data } = await plugins.hooks.fire('filter:messaging.send', {
+//         data,
+//         uid: caller.uid,
+//     }));
+
+//     await messaging.canMessageRoom(caller.uid, data.roomId);
+//     const message = await messaging.sendMessage({
+//         uid: caller.uid,
+//         roomId: data.roomId,
+//         content: data.message,
+//         timestamp: Date.now(),
+//         ip: caller.ip,
+//     });
+//     messaging.notifyUsersInRoom(caller.uid, data.roomId, message);
+//     user.updateOnlineUsers(caller.uid);
+
+//     return message;
+// };
+
+export async function post(caller : Caller, data : Data) {
     if (rateLimitExceeded(caller)) {
         throw new Error('[[error:too-many-messages]]');
     }
 
-    ({ data } = await plugins.hooks.fire('filter:messaging.send', {
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    const aggregateHook : Hook = await plugins.hooks.fire('filter:messaging.send', {
         data,
         uid: caller.uid,
-    }));
+    }) as Hook;
+    ({ data } = aggregateHook);
+    // This part has been modified from the original code so that we can first get the data
+    // in its aggregated form, then deconstruct to get the data from the return value
+    // This helps ensure the types in between
 
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     await messaging.canMessageRoom(caller.uid, data.roomId);
-    const message = await messaging.sendMessage({
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    const message : string = await messaging.sendMessage({
         uid: caller.uid,
         roomId: data.roomId,
         content: data.message,
         timestamp: Date.now(),
         ip: caller.ip,
-    });
+    }) as string;
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     messaging.notifyUsersInRoom(caller.uid, data.roomId, message);
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
     user.updateOnlineUsers(caller.uid);
 
     return message;
-};
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 export async function rename(caller, data) {
     await messaging.renameRoom(caller.uid, data.roomId, data.name);
