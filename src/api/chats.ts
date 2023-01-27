@@ -20,7 +20,7 @@ import plugins from '../plugins'
 import socketHelpers from '../socket.io/helpers'
 
 // Import the types to be used
-// import { MessageObject, RoomObject, RoomUserList, RoomObjectFull } from '../types'
+// import { UserObjectFull } from '../types'
 
 
 // const chatsAPI = module.exports;
@@ -31,7 +31,21 @@ type Session = {
     lastChatMessageTime : number
 }
 
-function rateLimitExceeded(caller) : boolean{
+type Data = {
+    uids : number[]
+}
+
+type Request = {
+    session : Session
+}
+
+type Caller = {
+    request : Request,
+    session : Session
+
+}
+
+function rateLimitExceeded(caller : Caller) : boolean{
     const session : Session = caller.request ? caller.request.session : caller.session; // socket vs req
     const now : number = Date.now();
     session.lastChatMessageTime = session.lastChatMessageTime || 0;
@@ -43,14 +57,15 @@ function rateLimitExceeded(caller) : boolean{
 }
 
 
-export async function create (caller, data) {
+export async function create (caller : Caller, data : Data) {
     if (rateLimitExceeded(caller)) {
         throw new Error('[[error:too-many-messages]]');
     }
 
-    if (!data.uids || !Array.isArray(data.uids)) {
-        throw new Error(`[[error:wrong-parameter-type, uids, ${typeof data.uids}, Array]]`);
-    }
+    // if (!data.uids || !Array.isArray(data.uids)) {
+    //     throw new Error(`[[error:wrong-parameter-type, uids, ${typeof data.uids}, Array]]`);
+    // }
+    // Unused as of type was checked before
 
     await Promise.all(data.uids.map(async uid => messaging.canMessageUser(caller.uid, uid)));
     const roomId = await messaging.newRoom(caller.uid, data.uids);
@@ -61,7 +76,7 @@ export async function create (caller, data) {
 
 
 
-chatsAPI.post = async (caller, data) => {
+export async function post (caller, data) => {
     if (rateLimitExceeded(caller)) {
         throw new Error('[[error:too-many-messages]]');
     }
@@ -85,7 +100,7 @@ chatsAPI.post = async (caller, data) => {
     return message;
 };
 
-chatsAPI.rename = async (caller, data) => {
+export async function rename (caller, data) => {
     await messaging.renameRoom(caller.uid, data.roomId, data.name);
     const uids = await messaging.getUidsInRoom(data.roomId, 0, -1);
     const eventData = { roomId: data.roomId, newName: validator.escape(String(data.name)) };
@@ -96,7 +111,7 @@ chatsAPI.rename = async (caller, data) => {
     });
 };
 
-chatsAPI.users = async (caller, data) => {
+export async function users (caller, data) => {
     const [isOwner, users] = await Promise.all([
         messaging.isRoomOwner(caller.uid, data.roomId),
         messaging.getUsersInRoom(data.roomId, 0, -1),
@@ -107,7 +122,7 @@ chatsAPI.users = async (caller, data) => {
     return { users };
 };
 
-chatsAPI.invite = async (caller, data) => {
+export async function invite (caller, data) => {
     const userCount = await messaging.getUserCountInRoom(data.roomId);
     const maxUsers = meta.config.maximumUsersInChatRoom;
     if (maxUsers && userCount >= maxUsers) {
@@ -125,7 +140,7 @@ chatsAPI.invite = async (caller, data) => {
     return chatsAPI.users(caller, data);
 };
 
-chatsAPI.kick = async (caller, data) => {
+export async function kick (caller, data) => {
     const uidsExist = await user.exists(data.uids);
     if (!uidsExist.every(Boolean)) {
         throw new Error('[[error:no-user]]');
