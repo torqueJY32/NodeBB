@@ -261,16 +261,50 @@ export async function post(caller : Caller, data : Data) {
 
 
 
-export async function rename(caller, data) {
-    await messaging.renameRoom(caller.uid, data.roomId, data.name);
-    const uids = await messaging.getUidsInRoom(data.roomId, 0, -1);
-    const eventData = { roomId: data.roomId, newName: validator.escape(String(data.name)) };
+// export async function rename(caller, data) {
+//     await messaging.renameRoom(caller.uid, data.roomId, data.name);
+//     const uids = await messaging.getUidsInRoom(data.roomId, 0, -1);
+//     const eventData = { roomId: data.roomId, newName: validator.escape(String(data.name)) };
 
-    socketHelpers.emitToUids('event:chats.roomRename', eventData, uids);
+//     socketHelpers.emitToUids('event:chats.roomRename', eventData, uids);
+//     return messaging.loadRoom(caller.uid, {
+//         roomId: data.roomId,
+//     });
+// };
+export async function rename(caller : Caller, data : Data) {
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    await messaging.renameRoom(caller.uid, data.roomId, data.name);
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    const uids : number[] = await messaging.getUidsInRoom(data.roomId, 0, -1) as number[];
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    const eventData : EventData = { roomId: data.roomId, newName: validator.escape(String(data.name)) as string };
+
+    await socketHelpers.emitToUids('event:chats.roomRename', eventData, uids);
+    // The next line calls a function in a module that has not been updated to TS yet
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
     return messaging.loadRoom(caller.uid, {
         roomId: data.roomId,
     });
-};
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 export async function users(caller, data) {
     const [isOwner, users] = await Promise.all([

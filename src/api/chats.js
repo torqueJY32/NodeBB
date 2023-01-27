@@ -101,9 +101,10 @@ function post(caller, data) {
             data,
             uid: caller.uid,
         });
-        // console.log("START LOG MSG!!\n");
-        // console.log(aggregateHook);
         ({ data } = aggregateHook);
+        // This part has been modified from the original code so that we can first get the data
+        // in its aggregated form, then deconstruct to get the data from the return value
+        // This helps ensure the types in between
         // The next line calls a function in a module that has not been updated to TS yet
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         yield messaging_1.default.canMessageRoom(caller.uid, data.roomId);
@@ -126,19 +127,35 @@ function post(caller, data) {
     });
 }
 exports.post = post;
+// export async function rename(caller, data) {
+//     await messaging.renameRoom(caller.uid, data.roomId, data.name);
+//     const uids = await messaging.getUidsInRoom(data.roomId, 0, -1);
+//     const eventData = { roomId: data.roomId, newName: validator.escape(String(data.name)) };
+//     socketHelpers.emitToUids('event:chats.roomRename', eventData, uids);
+//     return messaging.loadRoom(caller.uid, {
+//         roomId: data.roomId,
+//     });
+// };
 function rename(caller, data) {
     return __awaiter(this, void 0, void 0, function* () {
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         yield messaging_1.default.renameRoom(caller.uid, data.roomId, data.name);
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         const uids = yield messaging_1.default.getUidsInRoom(data.roomId, 0, -1);
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         const eventData = { roomId: data.roomId, newName: validator_1.default.escape(String(data.name)) };
-        helpers_1.default.emitToUids('event:chats.roomRename', eventData, uids);
+        yield helpers_1.default.emitToUids('event:chats.roomRename', eventData, uids);
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
         return messaging_1.default.loadRoom(caller.uid, {
             roomId: data.roomId,
         });
     });
 }
 exports.rename = rename;
-;
 function users(caller, data) {
     return __awaiter(this, void 0, void 0, function* () {
         const [isOwner, users] = yield Promise.all([
