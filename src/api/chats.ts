@@ -1,29 +1,12 @@
-// 'use strict';
-
-// const validator = require('validator');
 import validator from 'validator';
 
-// const user = require('../user');
 import user from '../user';
-
-// const meta = require('../meta');
 import meta from '../meta';
-
-// const messaging = require('../messaging');
 import messaging from '../messaging';
-
-// const plugins = require('../plugins');
 import plugins from '../plugins';
 
-// const websockets = require('../socket.io'); THIS WAS COMMENTED
-// const socketHelpers = require('../socket.io/helpers');
 import socketHelpers from '../socket.io/helpers';
 
-// Import the types to be used
-
-
-// const chatsAPI = module.exports;
-// This is removed for TS
 
 
 type Session = {
@@ -31,7 +14,7 @@ type Session = {
 }
 
 type Data = {
-    uids : number[]
+    uids : string[]
     roomId: number
     message: string
     name : string
@@ -44,17 +27,11 @@ type Request = {
 type Caller = {
     request : Request,
     session : Session
-    uid : number
+    uid : string
     ip : string
 }
 
-// type Message = {
-//     uid: number
-//     roomId: number
-//     content: string
-//     timestamp: number
-//     ip: string
-// }
+
 
 type EventData = {
     roomId : number,
@@ -62,7 +39,7 @@ type EventData = {
 }
 
 type User = {
-    uid : number,
+    uid : string,
     canKick : boolean
 }
 
@@ -84,6 +61,10 @@ function rateLimitExceeded(caller : Caller) : boolean {
 export async function create(caller : Caller, data : Data) {
     if (rateLimitExceeded(caller)) {
         throw new Error('[[error:too-many-messages]]');
+    }
+
+    if (!data.uids || !Array.isArray(data.uids)) {
+        throw new Error(`[[error:wrong-parameter-type, uids, ${typeof data.uids}, Array]]`);
     }
 
 
@@ -110,10 +91,10 @@ export async function post(caller : Caller, data : Data) {
 
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    data = await plugins.hooks.fire('filter:messaging.send', {
+    (data = await plugins.hooks.fire('filter:messaging.send', {
         data,
         uid: caller.uid,
-    }) as Data;
+    }) as Data);
 
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
@@ -166,7 +147,7 @@ export async function users(caller : Caller, data : Data) {
         messaging.getUsersInRoom(data.roomId, 0, -1),
     ] as [boolean, User[]]);
     users.forEach((user) => {
-        user.canKick = (user.uid !== caller.uid) && isOwner;
+        user.canKick = (parseInt(user.uid, 10) !== parseInt(caller.uid, 10)) && isOwner;
     });
     return { users };
 }
@@ -205,7 +186,7 @@ export async function kick(caller : Caller, data: Data) {
     }
 
     // Additional checks if kicking vs leaving
-    if (data.uids.length === 1 && data.uids[0] === caller.uid) {
+    if (data.uids.length === 1 && parseInt(data.uids[0], 10) === parseInt(caller.uid, 10)) {
     // The next line calls a function in a module that has not been updated to TS yet
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         await messaging.leaveRoom([caller.uid], data.roomId);
