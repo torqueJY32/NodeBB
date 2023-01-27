@@ -20,15 +20,19 @@ import plugins from '../plugins'
 import socketHelpers from '../socket.io/helpers'
 
 // Import the types to be used
-import { MessageObject, RoomObject, RoomUserList, RoomObjectFull } from '../types'
+// import { MessageObject, RoomObject, RoomUserList, RoomObjectFull } from '../types'
 
 
 // const chatsAPI = module.exports;
 // This is removed for TS
 
 
-function rateLimitExceeded(caller) {
-    const session = caller.request ? caller.request.session : caller.session; // socket vs req
+type Session = {
+    lastChatMessageTime : number
+}
+
+function rateLimitExceeded(caller) : boolean{
+    const session : Session = caller.request ? caller.request.session : caller.session; // socket vs req
     const now : number = Date.now();
     session.lastChatMessageTime = session.lastChatMessageTime || 0;
     if (now - session.lastChatMessageTime < meta.config.chatMessageDelay) {
