@@ -156,10 +156,24 @@ function rename(caller, data) {
     });
 }
 exports.rename = rename;
+// export async function users(caller, data) {
+//     const [isOwner, users] = await Promise.all([
+//         messaging.isRoomOwner(caller.uid, data.roomId),
+//         messaging.getUsersInRoom(data.roomId, 0, -1),
+//     ]);
+//     users.forEach((user) => {
+//         user.canKick = (parseInt(user.uid, 10) !== parseInt(caller.uid, 10)) && isOwner;
+//     });
+//     return { users };
+// };
 function users(caller, data) {
     return __awaiter(this, void 0, void 0, function* () {
         const [isOwner, users] = yield Promise.all([
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             messaging_1.default.isRoomOwner(caller.uid, data.roomId),
+            // The next line calls a function in a module that has not been updated to TS yet
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
             messaging_1.default.getUsersInRoom(data.roomId, 0, -1),
         ]);
         users.forEach((user) => {
@@ -169,7 +183,6 @@ function users(caller, data) {
     });
 }
 exports.users = users;
-;
 function invite(caller, data) {
     return __awaiter(this, void 0, void 0, function* () {
         const userCount = yield messaging_1.default.getUserCountInRoom(data.roomId);

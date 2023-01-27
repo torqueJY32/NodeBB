@@ -306,16 +306,42 @@ export async function rename(caller : Caller, data : Data) {
 
 
 
-export async function users(caller, data) {
-    const [isOwner, users] = await Promise.all([
+// export async function users(caller, data) {
+//     const [isOwner, users] = await Promise.all([
+//         messaging.isRoomOwner(caller.uid, data.roomId),
+//         messaging.getUsersInRoom(data.roomId, 0, -1),
+//     ]);
+//     users.forEach((user) => {
+//         user.canKick = (parseInt(user.uid, 10) !== parseInt(caller.uid, 10)) && isOwner;
+//     });
+//     return { users };
+// };
+
+
+
+export async function users(caller : Caller, data : Data) {
+    const [isOwner, users] : [boolean, User[]] = await Promise.all([
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         messaging.isRoomOwner(caller.uid, data.roomId),
+        // The next line calls a function in a module that has not been updated to TS yet
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
         messaging.getUsersInRoom(data.roomId, 0, -1),
-    ]);
+    ] as [boolean, User[]]);
     users.forEach((user) => {
         user.canKick = (parseInt(user.uid, 10) !== parseInt(caller.uid, 10)) && isOwner;
     });
     return { users };
-};
+}
+
+
+
+
+
+
+
+
+
 
 export async function invite(caller, data) {
     const userCount = await messaging.getUserCountInRoom(data.roomId);
