@@ -19,12 +19,17 @@ import plugins from '../plugins'
 // const socketHelpers = require('../socket.io/helpers');
 import socketHelpers from '../socket.io/helpers'
 
+// Import the types to be used
+import { MessageObject, RoomObject, RoomUserList, RoomObjectFull } from '../types'
 
-const chatsAPI = module.exports;
+
+// const chatsAPI = module.exports;
+// This is removed for TS
+
 
 function rateLimitExceeded(caller) {
     const session = caller.request ? caller.request.session : caller.session; // socket vs req
-    const now = Date.now();
+    const now : number = Date.now();
     session.lastChatMessageTime = session.lastChatMessageTime || 0;
     if (now - session.lastChatMessageTime < meta.config.chatMessageDelay) {
         return true;
@@ -33,7 +38,8 @@ function rateLimitExceeded(caller) {
     return false;
 }
 
-chatsAPI.create = async function (caller, data) {
+
+export async function create (caller, data) {
     if (rateLimitExceeded(caller)) {
         throw new Error('[[error:too-many-messages]]');
     }
@@ -47,6 +53,9 @@ chatsAPI.create = async function (caller, data) {
 
     return await messaging.getRoomData(roomId);
 };
+
+
+
 
 chatsAPI.post = async (caller, data) => {
     if (rateLimitExceeded(caller)) {
